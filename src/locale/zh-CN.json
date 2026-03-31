@@ -1,0 +1,16 @@
+{
+  "Crypto": "加密解密",
+  "Encrypt or decrypt data using AES algorithms.": "使用 AES 算法对数据进行加密或解密。",
+  "Operation": "操作",
+  "Encrypt": "加密",
+  "Decrypt": "解密",
+  "Algorithm": "算法",
+  "Key": "密钥",
+  "Input": "输入",
+  "Encoding": "编码",
+  "Auto-parse JSON": "自动解析 JSON",
+  "Sign Token": "签发令牌",
+  "Generate a NocoBase auth token for a user. Used in SSO / passwordless login flows.": "为用户生成 NocoBase 认证令牌，用于 SSO / 免密登录。",
+  "User ID": "用户 ID",
+  "The ID of the user to generate a token for. Supports workflow variables.": "要生成令牌的用户 ID，支持工作流变量。"
+}

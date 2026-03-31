@@ -1,0 +1,16 @@
+{
+  "Crypto": "Crypto",
+  "Encrypt or decrypt data using AES algorithms.": "Encrypt or decrypt data using AES algorithms.",
+  "Operation": "Operation",
+  "Encrypt": "Encrypt",
+  "Decrypt": "Decrypt",
+  "Algorithm": "Algorithm",
+  "Key": "Key",
+  "Input": "Input",
+  "Encoding": "Encoding",
+  "Auto-parse JSON": "Auto-parse JSON",
+  "Sign Token": "Sign Token",
+  "Generate a NocoBase auth token for a user. Used in SSO / passwordless login flows.": "Generate a NocoBase auth token for a user. Used in SSO / passwordless login flows.",
+  "User ID": "User ID",
+  "The ID of the user to generate a token for. Supports workflow variables.": "The ID of the user to generate a token for. Supports workflow variables."
+}
