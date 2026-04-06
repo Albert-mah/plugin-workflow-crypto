@@ -1,3 +1,12 @@
+/**
+ * This file is part of the NocoBase (R) project.
+ * Copyright (c) 2020-2024 NocoBase Co., Ltd.
+ * Authors: NocoBase Team.
+ *
+ * This project is dual-licensed under AGPL-3.0 and NocoBase Commercial License.
+ * For more information, please refer to: https://www.nocobase.com/agreement.
+ */
+
 import crypto from 'crypto';
 import { Processor, Instruction, JOB_STATUS, FlowNodeModel } from '@nocobase/plugin-workflow';
 
@@ -115,6 +124,34 @@ export default class CryptoInstruction extends Instruction {
         }
       }
 
+      return { result, status: JOB_STATUS.RESOLVED };
+    } catch (err) {
+      return { result: { error: err.message }, status: JOB_STATUS.ERROR };
+    }
+  }
+
+  async test(config) {
+    const { operation = 'decrypt', algorithm = 'aes-256-cbc', key = '', input = '', inputEncoding = 'base64', autoParseJson = true } = config;
+
+    if (!key) {
+      return { result: { error: 'Key is required' }, status: JOB_STATUS.ERROR };
+    }
+    if (!input) {
+      return { result: { error: 'Input is required' }, status: JOB_STATUS.ERROR };
+    }
+
+    try {
+      let result: any;
+      if (operation === 'encrypt') {
+        result = encrypt(typeof input === 'string' ? input : JSON.stringify(input), algorithm, key, inputEncoding);
+      } else {
+        const decrypted = decrypt(String(input), algorithm, key, inputEncoding);
+        if (autoParseJson) {
+          try { result = JSON.parse(decrypted); } catch { result = decrypted; }
+        } else {
+          result = decrypted;
+        }
+      }
       return { result, status: JOB_STATUS.RESOLVED };
     } catch (err) {
       return { result: { error: err.message }, status: JOB_STATUS.ERROR };
