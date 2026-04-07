@@ -33,20 +33,6 @@ export default class extends Instruction {
       required: true,
       default: 'decrypt',
     },
-    algorithm: {
-      type: 'string',
-      title: `{{t("Algorithm", { ns: "${NAMESPACE}" })}}`,
-      'x-decorator': 'FormItem',
-      'x-component': 'Select',
-      enum: [
-        { label: 'AES-256-CBC', value: 'aes-256-cbc' },
-        { label: 'AES-256-GCM', value: 'aes-256-gcm' },
-        { label: 'AES-128-CBC', value: 'aes-128-cbc' },
-        { label: 'AES-128-GCM', value: 'aes-128-gcm' },
-      ],
-      required: true,
-      default: 'aes-256-cbc',
-    },
     key: {
       type: 'string',
       title: `{{t("Key", { ns: "${NAMESPACE}" })}}`,
@@ -63,18 +49,6 @@ export default class extends Instruction {
       'x-component-props': { changeOnSelect: true, autoSize: { minRows: 1, maxRows: 5 } },
       required: true,
     },
-    inputEncoding: {
-      type: 'string',
-      title: `{{t("Encoding", { ns: "${NAMESPACE}" })}}`,
-      'x-decorator': 'FormItem',
-      'x-component': 'Radio.Group',
-      'x-component-props': { optionType: 'button' },
-      enum: [
-        { label: 'Base64', value: 'base64' },
-        { label: 'Hex', value: 'hex' },
-      ],
-      default: 'base64',
-    },
     autoParseJson: {
       type: 'boolean',
       title: `{{t("Auto-parse JSON", { ns: "${NAMESPACE}" })}}`,
@@ -87,6 +61,66 @@ export default class extends Instruction {
           fulfill: { state: { visible: '{{$deps[0] === "decrypt"}}' } },
         },
       ],
+    },
+    advanced: {
+      type: 'void',
+      title: `{{t("Advanced options", { ns: "${NAMESPACE}" })}}`,
+      'x-decorator': 'FormItem',
+      'x-component': 'Collapse',
+      'x-component-props': {
+        ghost: true,
+        size: 'small',
+      },
+      properties: {
+        panel: {
+          type: 'void',
+          'x-component': 'Collapse.Panel',
+          'x-component-props': {
+            header: `{{t("Advanced options", { ns: "${NAMESPACE}" })}}`,
+          },
+          properties: {
+            algorithm: {
+              type: 'string',
+              title: `{{t("Algorithm", { ns: "${NAMESPACE}" })}}`,
+              'x-decorator': 'FormItem',
+              'x-component': 'Select',
+              enum: [
+                { label: 'AES-256-CBC', value: 'aes-256-cbc' },
+                { label: 'AES-256-GCM', value: 'aes-256-gcm' },
+                { label: 'AES-128-CBC', value: 'aes-128-cbc' },
+                { label: 'AES-128-GCM', value: 'aes-128-gcm' },
+              ],
+              required: true,
+              default: 'aes-256-cbc',
+            },
+            keyMode: {
+              type: 'string',
+              title: `{{t("Key processing", { ns: "${NAMESPACE}" })}}`,
+              description: `{{t("'Auto' hashes any key to the correct length. 'Raw' uses the key as-is (must be exactly 16 or 32 characters).", { ns: "${NAMESPACE}" })}}`,
+              'x-decorator': 'FormItem',
+              'x-component': 'Radio.Group',
+              'x-component-props': { optionType: 'button' },
+              enum: [
+                { label: `{{t("Raw", { ns: "${NAMESPACE}" })}}`, value: 'raw' },
+                { label: `{{t("Auto", { ns: "${NAMESPACE}" })}}`, value: 'hash' },
+              ],
+              default: 'raw',
+            },
+            inputEncoding: {
+              type: 'string',
+              title: `{{t("Encoding", { ns: "${NAMESPACE}" })}}`,
+              'x-decorator': 'FormItem',
+              'x-component': 'Radio.Group',
+              'x-component-props': { optionType: 'button' },
+              enum: [
+                { label: 'Base64', value: 'base64' },
+                { label: 'Hex', value: 'hex' },
+              ],
+              default: 'base64',
+            },
+          },
+        },
+      },
     },
   };
 

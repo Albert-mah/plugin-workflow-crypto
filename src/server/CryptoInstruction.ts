@@ -20,6 +20,7 @@ interface CryptoConfig {
   input: string;
   inputEncoding: 'base64' | 'hex';
   autoParseJson: boolean;
+  keyMode: 'hash' | 'raw';
 }
 
 function deriveKey(key: string, length: number): Buffer {
@@ -35,9 +36,9 @@ function isGcm(algorithm: Algorithm): boolean {
   return algorithm.includes('gcm');
 }
 
-function encrypt(input: string, algorithm: Algorithm, keyStr: string, encoding: 'base64' | 'hex'): string {
+function encrypt(input: string, algorithm: Algorithm, keyStr: string, encoding: 'base64' | 'hex', keyMode: 'hash' | 'raw' = 'raw'): string {
   const keyLen = getKeyLength(algorithm);
-  const key = deriveKey(keyStr, keyLen);
+  const key = keyMode === 'raw' ? Buffer.from(keyStr, 'utf8') : deriveKey(keyStr, keyLen);
   const iv = crypto.randomBytes(isGcm(algorithm) ? 12 : 16);
 
   const cipher = crypto.createCipheriv(algorithm, key, iv);
@@ -52,31 +53,43 @@ function encrypt(input: string, algorithm: Algorithm, keyStr: string, encoding: 
   return [iv.toString(encoding), encrypted.toString(encoding)].join(':');
 }
 
-function decrypt(input: string, algorithm: Algorithm, keyStr: string, encoding: 'base64' | 'hex'): string {
+function decrypt(input: string, algorithm: Algorithm, keyStr: string, encoding: 'base64' | 'hex', keyMode: 'hash' | 'raw' = 'raw'): string {
   const keyLen = getKeyLength(algorithm);
-  const key = deriveKey(keyStr, keyLen);
+  const key = keyMode === 'raw' ? Buffer.from(keyStr, 'utf8') : deriveKey(keyStr, keyLen);
   const parts = input.split(':');
+  const ivLen = isGcm(algorithm) ? 12 : 16;
 
   if (isGcm(algorithm)) {
-    if (parts.length < 3) {
-      throw new Error('Invalid GCM ciphertext format, expected iv:authTag:ciphertext');
+    if (parts.length >= 3) {
+      // Separator format: iv:authTag:ciphertext
+      const iv = Buffer.from(parts[0], encoding);
+      const authTag = Buffer.from(parts[1], encoding);
+      const ciphertext = Buffer.from(parts.slice(2).join(':'), encoding);
+      const decipher = crypto.createDecipheriv(algorithm, key, iv) as crypto.DecipherGCM;
+      decipher.setAuthTag(authTag);
+      let decrypted = decipher.update(ciphertext);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      return decrypted.toString('utf8');
     }
-    const iv = Buffer.from(parts[0], encoding);
-    const authTag = Buffer.from(parts[1], encoding);
-    const ciphertext = Buffer.from(parts.slice(2).join(':'), encoding);
-
-    const decipher = crypto.createDecipheriv(algorithm, key, iv) as crypto.DecipherGCM;
-    decipher.setAuthTag(authTag);
-    let decrypted = decipher.update(ciphertext);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString('utf8');
+    throw new Error('Invalid GCM ciphertext format');
   }
 
-  if (parts.length < 2) {
-    throw new Error('Invalid ciphertext format, expected iv:ciphertext');
+  let iv: Buffer;
+  let ciphertext: Buffer;
+
+  if (parts.length >= 2) {
+    // Separator format: iv:ciphertext (our format)
+    iv = Buffer.from(parts[0], encoding);
+    ciphertext = Buffer.from(parts.slice(1).join(':'), encoding);
+  } else {
+    // IV-prefix format: iv is first 16 bytes of decoded data (Java/common format)
+    const raw = Buffer.from(input, encoding);
+    if (raw.length <= ivLen) {
+      throw new Error('Ciphertext too short');
+    }
+    iv = raw.subarray(0, ivLen);
+    ciphertext = raw.subarray(ivLen);
   }
-  const iv = Buffer.from(parts[0], encoding);
-  const ciphertext = Buffer.from(parts.slice(1).join(':'), encoding);
 
   const decipher = crypto.createDecipheriv(algorithm, key, iv);
   let decrypted = decipher.update(ciphertext);
@@ -92,6 +105,7 @@ export default class CryptoInstruction extends Instruction {
       key = '',
       inputEncoding = 'base64',
       autoParseJson = true,
+      keyMode = 'hash',
     } = node.config as CryptoConfig;
 
     const resolvedKey = processor.getParsedValue(key, node.id);
@@ -110,9 +124,9 @@ export default class CryptoInstruction extends Instruction {
 
       if (operation === 'encrypt') {
         const plaintext = typeof resolvedInput === 'string' ? resolvedInput : JSON.stringify(resolvedInput);
-        result = encrypt(plaintext, algorithm, resolvedKey, inputEncoding);
+        result = encrypt(plaintext, algorithm, resolvedKey, inputEncoding, keyMode);
       } else {
-        const decrypted = decrypt(String(resolvedInput), algorithm, resolvedKey, inputEncoding);
+        const decrypted = decrypt(String(resolvedInput), algorithm, resolvedKey, inputEncoding, keyMode);
         if (autoParseJson) {
           try {
             result = JSON.parse(decrypted);
@@ -131,7 +145,7 @@ export default class CryptoInstruction extends Instruction {
   }
 
   async test(config) {
-    const { operation = 'decrypt', algorithm = 'aes-256-cbc', key = '', input = '', inputEncoding = 'base64', autoParseJson = true } = config;
+    const { operation = 'decrypt', algorithm = 'aes-256-cbc', key = '', input = '', inputEncoding = 'base64', autoParseJson = true, keyMode = 'hash' } = config;
 
     if (!key) {
       return { result: { error: 'Key is required' }, status: JOB_STATUS.ERROR };
@@ -143,9 +157,9 @@ export default class CryptoInstruction extends Instruction {
     try {
       let result: any;
       if (operation === 'encrypt') {
-        result = encrypt(typeof input === 'string' ? input : JSON.stringify(input), algorithm, key, inputEncoding);
+        result = encrypt(typeof input === 'string' ? input : JSON.stringify(input), algorithm, key, inputEncoding, keyMode);
       } else {
-        const decrypted = decrypt(String(input), algorithm, key, inputEncoding);
+        const decrypted = decrypt(String(input), algorithm, key, inputEncoding, keyMode);
         if (autoParseJson) {
           try { result = JSON.parse(decrypted); } catch { result = decrypted; }
         } else {

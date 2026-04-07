@@ -4,9 +4,14 @@
   "Operation": "Operation",
   "Encrypt": "Encrypt",
   "Decrypt": "Decrypt",
-  "Algorithm": "Algorithm",
   "Key": "Key",
   "Input": "Input",
-  "Encoding": "Encoding",
-  "Auto-parse JSON": "Auto-parse JSON"
+  "Auto-parse JSON": "Auto-parse JSON",
+  "Advanced options": "Advanced options",
+  "Algorithm": "Algorithm",
+  "Key processing": "Key processing",
+  "'Auto' hashes any key to the correct length. 'Raw' uses the key as-is (must be exactly 16 or 32 characters).": "'Auto' hashes any key to the correct length. 'Raw' uses the key as-is (must be exactly 16 or 32 characters).",
+  "Auto": "Auto",
+  "Raw": "Raw",
+  "Encoding": "Encoding"
 }

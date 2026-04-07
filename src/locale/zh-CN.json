@@ -4,9 +4,14 @@
   "Operation": "操作",
   "Encrypt": "加密",
   "Decrypt": "解密",
-  "Algorithm": "算法",
   "Key": "密钥",
   "Input": "输入",
-  "Encoding": "编码",
-  "Auto-parse JSON": "自动解析 JSON"
+  "Auto-parse JSON": "自动解析 JSON",
+  "Advanced options": "高级选项",
+  "Algorithm": "算法",
+  "Key processing": "密钥处理",
+  "'Auto' hashes any key to the correct length. 'Raw' uses the key as-is (must be exactly 16 or 32 characters).": ""自动"会将任意密钥哈希为正确长度。"原始"直接使用密钥（必须为 16 或 32 个字符）。",
+  "Auto": "自动",
+  "Raw": "原始",
+  "Encoding": "编码"
 }
