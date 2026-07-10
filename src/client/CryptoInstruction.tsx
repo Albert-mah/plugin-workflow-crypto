@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { LockOutlined } from '@ant-design/icons';
-import { Instruction, WorkflowVariableTextArea } from '@nocobase/plugin-workflow/client';
+import { Instruction, WorkflowVariableTextArea, defaultFieldNames } from '@nocobase/plugin-workflow/client';
 
 const NAMESPACE = 'workflow-crypto';
 
@@ -127,6 +127,13 @@ export default class extends Instruction {
   components = {
     WorkflowVariableTextArea,
   };
+
+  useVariables({ key, title }) {
+    return {
+      [defaultFieldNames.value]: key,
+      [defaultFieldNames.label]: title,
+    };
+  }
 
   testable = true;
 }
